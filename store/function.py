@@ -27,7 +27,6 @@ def list_of_variants_of_collection(coll_id):
                                .filter(product__collections=coll_id))
 
 
-
-
-
-
+def list_of_variants_of_category(category_id):
+    category = Category.objects.get(id=category_id)
+    return category.all_variants
