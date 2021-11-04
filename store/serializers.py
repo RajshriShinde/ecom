@@ -28,6 +28,8 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class CollectionSerializer(serializers.ModelSerializer):
+    products = serializers.StringRelatedField(many=True)
+
     class Meta:
         model = Collection
         fields = ['id', 'products', 'title', 'published', 'updated_at']

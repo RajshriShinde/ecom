@@ -272,7 +272,7 @@ def category_detail(request, pk):
 def list_of_product_of_collections(request, pk):
     if request.method == 'GET':
         list_of_products = list(Product.objects.values('title', 'description', 'created_at', 'updated_at')
-                                                              .filter(collections=pk).annotate(_images=F('images')))
+                                                               .filter(collections=pk).annotate(_images=F('images')))
         serializer = ProductSerializer(list_of_products, many=True)
         return JsonResponse(serializer.data, safe=False)
 
@@ -294,7 +294,8 @@ def list_of_variants_of_collection(request, pk):
 @permission_classes([IsAuthenticated])
 def list_of_variants_of_category(request, pk):
     category = Category.objects.get(id=pk)
-    serializer = VariantSerializer(category.all_variants, many=True)
+    variants = category.all_variants.annotate(_title=Concat('product__title', V(" "), 'title'))
+    serializer = VariantSerializer(variants, many=True)
     return Response(serializer.data, status=200)
 
 
@@ -306,7 +307,7 @@ def update_email(request, pk):
         user = User.objects.get(pk=pk)
 
     except User.DoNotExist:
-        HttpResponse(status=404)
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = UserSerializer(user)

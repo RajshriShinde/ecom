@@ -29,4 +29,5 @@ def list_of_variants_of_collection(coll_id):
 
 def list_of_variants_of_category(category_id):
     category = Category.objects.get(id=category_id)
-    return category.all_variants
+    return list(category.all_variants.values('created_at', 'updated_at', 'available_for_sale', 'price', 'image')
+                        .annotate(_title=Concat('product__title', V(" "), 'title')))

@@ -54,10 +54,9 @@ class Category(models.Model):
 
     @property
     def get_all_subcategories(self):
-        direct_subcategories = self.subcategories
+        direct_subcategories = self.subcategories.all()
         children_subcategories = [subcategory.get_all_subcategories for subcategory in direct_subcategories]
-
-        return direct_subcategories(*children_subcategories)
+        return direct_subcategories.union(*children_subcategories)
 
     @property
     def all_variants(self):
