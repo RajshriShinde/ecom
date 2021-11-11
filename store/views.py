@@ -1,5 +1,4 @@
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from .models import *
 from django.db.models.functions import Concat
@@ -13,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view
 from .serializers import (ProductSerializer, VariantSerializer, ImageSerializer, CollectionSerializer,
                           CategorySerializer, UserSerializer)
+from .task import send_mail_to_users
 
 
 @api_view(['GET', 'POST'])
@@ -27,7 +27,7 @@ def product_list(request):
 
     elif User.is_staff:
         if request.method == 'POST':
-            data = JSONParser().parse(request)
+            data = request.data
             serializer = ProductSerializer(data=data)
 
             if serializer.is_valid():
@@ -322,4 +322,26 @@ def update_email(request, pk):
                 serializer.save()
                 return Response(serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def send_mail_to_all_users(request):
+    if request.user.is_staff:
+        data = request.data
+        if 'subject' not in data or 'message' not in data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        subject = data['subject']
+        message = data['message']
+        from_email = request.user.email
+        send_mail_to_users.delay(subject, message, from_email)
+        return Response("Email send Successfully...", status=status.HTTP_200_OK)
+
+
+
+
+
+
 

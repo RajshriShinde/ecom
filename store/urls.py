@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (product_list, product_detail, variant_list, variant_detail, image_list, image_detail
                                 , collection_list, collection_detail, category_list, category_detail
                                 , list_of_product_of_collections, list_of_variants_of_collection, update_email
-                                , list_of_variants_of_category)
+                                , list_of_variants_of_category, send_mail_to_all_users)
 
 urlpatterns = [
     path('product/', product_list),
@@ -19,4 +19,6 @@ urlpatterns = [
     path('collection/<int:pk>/variant_list/', list_of_variants_of_collection),
     path('category/<int:pk>/variant_list/', list_of_variants_of_category),
     path('user_email/<int:pk>/', update_email),
+    path('send_mail/', send_mail_to_all_users),
 ]
+

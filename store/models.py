@@ -8,12 +8,18 @@ class Product(models.Model):
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['description', 'created_at', 'updated_at']),
+            models.Index(fields=['title'], name='title_index'),
+        ]
+
     def __str__(self):
         return "%s" % self.title
 
 
 class Variant(models.Model):
-    image = models.OneToOneField('Image', on_delete=models.CASCADE, null=True)
+    image = models.ForeignKey('Image', on_delete=models.SET_NULL, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products', null=True)
     title = models.CharField(max_length=100)
     created_at = models.DateField(auto_now_add=True)
@@ -53,16 +59,26 @@ class Category(models.Model):
         return "%s " % self.title
 
     @property
-    def get_all_subcategories(self):
+    def all_subcategories(self):
         direct_subcategories = self.subcategories.all()
-        children_subcategories = [subcategory.get_all_subcategories for subcategory in direct_subcategories]
+        children_subcategories = [subcategory.all_subcategories for subcategory in direct_subcategories]
         return direct_subcategories.union(*children_subcategories)
 
     @property
     def all_variants(self):
-        category_ids = list(self.get_all_subcategories.values_list('id', flat=True))
+        category_ids = list(self.all_subcategories.values_list('id', flat=True))
         category_ids.append(self.id)
         return Variant.objects.filter(product__category__id__in=category_ids)
+
+    @property
+    def category_ids(self):
+        category_ids = list(self.all_subcategories.values_list('id', flat=True))
+        category_ids.append(self.id)
+        return category_ids
+
+    @property
+    def all_products(self):
+        return Product.objects.filter(category__id__in=self.category_ids)
 
 
 class ProductCollection(models.Model):

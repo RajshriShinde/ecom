@@ -1,9 +1,12 @@
 from django.db.models.functions import Concat
 from .models import *
 from django.db.models import Value as V, F
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 
-def list_of_product():
+@receiver(pre_delete, sender=Product)
+def list_of_product(sender, **kwargs):
     return list(Product.objects.values('title', 'description', 'created_at', 'updated_at').annotate(_images=F('images')))
 
 
